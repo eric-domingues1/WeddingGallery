@@ -9,11 +9,12 @@ from botocore.client import Config
 app = FastAPI()
 
 # ── Cloudflare R2 ──
-R2_ENDPOINT    = os.getenv("R2_ENDPOINT", "https://c24f97a539b9cb2385e79a0bc990cb02.r2.cloudflarestorage.com")
-R2_ACCESS_KEY  = os.getenv("R2_ACCESS_KEY", "3b2154f85ec68a407d1edc4586cd7a0a")
-R2_SECRET_KEY  = os.getenv("R2_SECRET_KEY", "2026e022f4d993554ce92676f356bda54be37724a045ce275ef292430b570032")
-R2_BUCKET      = os.getenv("R2_BUCKET", "fotos-casamento")
-R2_PUBLIC_URL  = os.getenv("R2_PUBLIC_URL", "https://pub-8e0f54c96bfc4b609dd5535b3b3351be.r2.dev")
+R2_ENDPOINT = os.getenv("R2_ENDPOINT")
+R2_ACCESS_KEY = os.getenv("R2_ACCESS_KEY")
+R2_SECRET_KEY = os.getenv("R2_SECRET_KEY")
+R2_BUCKET = os.getenv("R2_BUCKET")
+R2_PUBLIC_URL = os.getenv("R2_PUBLIC_URL")
+
 
 s3 = boto3.client(
     "s3",

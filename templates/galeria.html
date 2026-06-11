@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galeria · Eric & Marília</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:     #faf7f4;
+      --blush:     #f0e4da;
+      --gold:      #c9a96e;
+      --gold-deep: #a07840;
+      --text:      #2e2319;
+      --muted:     #8a7060;
+      --white:     #ffffff;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      padding: 48px 24px 0;
+      text-align: center;
+    }
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--gold-deep);
+      margin-bottom: 14px;
+    }
+    header h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(2rem, 6vw, 3.5rem);
+      font-weight: 400;
+      line-height: 1.1;
+      margin-bottom: 10px;
+    }
+    header h1 em { font-style: italic; color: var(--gold-deep); }
+    .divider {
+      width: 48px; height: 1px;
+      background: var(--gold);
+      margin: 18px auto 14px;
+      opacity: 0.7;
+    }
+    header p {
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-weight: 300;
+      margin-bottom: 10px;
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 0.82rem;
+      color: var(--gold-deep);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s;
+    }
+    .back-link:hover { border-color: var(--gold-deep); }
+
+    /* ── COUNTER ── */
+    #counter {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin: 18px 0 0;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── GRID ── */
+    .grid-wrap { padding: 24px 20px 60px; max-width: 1200px; margin: 0 auto; }
+
+    .grid {
+      columns: 3 280px;
+      column-gap: 12px;
+    }
+
+    .grid-item {
+      break-inside: avoid;
+      margin-bottom: 12px;
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      position: relative;
+      background: var(--blush);
+    }
+
+    .grid-item img,
+    .grid-item video {
+      width: 100%;
+      display: block;
+      transition: transform 0.35s ease, filter 0.35s ease;
+    }
+    .grid-item:hover img,
+    .grid-item:hover video {
+      transform: scale(1.03);
+      filter: brightness(0.92);
+    }
+
+    .grid-item .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(46,35,25,0);
+      transition: background 0.3s;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .grid-item:hover .overlay { background: rgba(46,35,25,0.12); }
+    .overlay-icon {
+      opacity: 0;
+      font-size: 1.6rem;
+      transition: opacity 0.3s;
+    }
+    .grid-item:hover .overlay-icon { opacity: 1; }
+
+    /* empty state */
+    .empty {
+      text-align: center;
+      padding: 80px 24px;
+    }
+    .empty p { color: var(--muted); font-size: 0.95rem; margin-bottom: 20px; }
+    .empty a {
+      color: var(--gold-deep);
+      text-decoration: none;
+      border-bottom: 1px solid var(--gold);
+      padding-bottom: 2px;
+    }
+
+    /* skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, var(--blush) 25%, #e8d8cc 50%, var(--blush) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      height: 200px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+    }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+    /* ── LIGHTBOX ── */
+    #lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(20,12,6,0.92);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+    #lightbox.open { display: flex; }
+
+    #lightbox img,
+    #lightbox video {
+      max-width: min(90vw, 1000px);
+      max-height: 86vh;
+      border-radius: 10px;
+      object-fit: contain;
+      box-shadow: 0 20px 80px rgba(0,0,0,0.5);
+    }
+
+    .lb-close {
+      position: fixed;
+      top: 20px; right: 24px;
+      font-size: 1.8rem;
+      color: rgba(255,255,255,0.7);
+      cursor: pointer;
+      background: none;
+      border: none;
+      line-height: 1;
+      transition: color 0.2s;
+    }
+    .lb-close:hover { color: #fff; }
+
+    .lb-nav {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: rgba(255,255,255,0.8);
+      font-size: 1.6rem;
+      padding: 16px 14px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background 0.2s;
+      backdrop-filter: blur(4px);
+    }
+    .lb-nav:hover { background: rgba(255,255,255,0.2); }
+    #lb-prev { left: 16px; }
+    #lb-next { right: 16px; }
+
+    .lb-counter {
+      position: fixed;
+      bottom: 22px; left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.1em;
+    }
+
+    @media (max-width: 600px) {
+      .lb-nav { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .grid-item img, .grid-item video { transition: none; }
+      .skeleton { animation: none; background: var(--blush); }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">Galeria de fotos</p>
+  <h1>Eric <em>&</em> Marília</h1>
+  <div class="divider"></div>
+  <p>Cada foto é um pedacinho deste dia especial.</p>
+  <a class="back-link" href="/">← Enviar mais fotos</a>
+</header>
+
+<p id="counter"></p>
+
+<div class="grid-wrap">
+  <div class="grid" id="grid">
+    <!-- skeletons enquanto carrega -->
+    <div class="skeleton"></div>
+    <div class="skeleton" style="height:260px"></div>
+    <div class="skeleton" style="height:180px"></div>
+    <div class="skeleton" style="height:300px"></div>
+    <div class="skeleton" style="height:220px"></div>
+    <div class="skeleton"></div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox" role="dialog" aria-modal="true">
+  <button class="lb-close" id="lb-close" aria-label="Fechar">✕</button>
+  <button class="lb-nav" id="lb-prev" aria-label="Anterior">‹</button>
+  <div id="lb-content"></div>
+  <button class="lb-nav" id="lb-next" aria-label="Próxima">›</button>
+  <p class="lb-counter" id="lb-counter"></p>
+</div>
+
+<script>
+  let fotos = [];
+  let currentIdx = 0;
+
+  async function loadFotos() {
+    const resp = await fetch('/api/fotos');
+    fotos = await resp.json();
+
+    const grid = document.getElementById('grid');
+    const counter = document.getElementById('counter');
+    grid.innerHTML = '';
+
+    if (!fotos.length) {
+      grid.innerHTML = `<div class="empty" style="column-span:all">
+        <p>Nenhuma foto ainda. Seja o primeiro a compartilhar!</p>
+        <a href="/">Enviar fotos →</a>
+      </div>`;
+      return;
+    }
+
+    counter.textContent = `${fotos.length} momento${fotos.length !== 1 ? 's' : ''} compartilhado${fotos.length !== 1 ? 's' : ''}`;
+
+    fotos.forEach((item, idx) => {
+      const div = document.createElement('div');
+      div.className = 'grid-item';
+      div.setAttribute('tabindex', '0');
+      div.setAttribute('role', 'button');
+      div.setAttribute('aria-label', `Ver foto ${idx + 1}`);
+
+      if (item.tipo === 'imagem') {
+        div.innerHTML = `
+          <img src="${item.url}" loading="lazy" alt="Foto do casamento ${idx + 1}">
+          <div class="overlay"><span class="overlay-icon">🔍</span></div>`;
+      } else {
+        div.innerHTML = `
+          <video src="${item.url}" muted playsinline preload="metadata"></video>
+          <div class="overlay"><span class="overlay-icon">▶</span></div>`;
+      }
+
+      div.addEventListener('click', () => openLightbox(idx));
+      div.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openLightbox(idx); });
+      grid.appendChild(div);
+    });
+  }
+
+  function openLightbox(idx) {
+    currentIdx = idx;
+    renderLightboxContent();
+    document.getElementById('lightbox').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+    document.body.style.overflow = '';
+    document.getElementById('lb-content').innerHTML = '';
+  }
+
+  function renderLightboxContent() {
+    const item = fotos[currentIdx];
+    const content = document.getElementById('lb-content');
+    content.innerHTML = item.tipo === 'imagem'
+      ? `<img src="${item.url}" alt="Foto ${currentIdx + 1}">`
+      : `<video src="${item.url}" controls autoplay style="max-width:min(90vw,1000px);max-height:86vh;border-radius:10px;"></video>`;
+    document.getElementById('lb-counter').textContent = `${currentIdx + 1} / ${fotos.length}`;
+  }
+
+  document.getElementById('lb-close').addEventListener('click', closeLightbox);
+  document.getElementById('lb-prev').addEventListener('click', () => {
+    currentIdx = (currentIdx - 1 + fotos.length) % fotos.length;
+    renderLightboxContent();
+  });
+  document.getElementById('lb-next').addEventListener('click', () => {
+    currentIdx = (currentIdx + 1) % fotos.length;
+    renderLightboxContent();
+  });
+
+  document.getElementById('lightbox').addEventListener('click', e => {
+    if (e.target === document.getElementById('lightbox')) closeLightbox();
+  });
+
+  document.addEventListener('keydown', e => {
+    if (!document.getElementById('lightbox').classList.contains('open')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') { currentIdx = (currentIdx - 1 + fotos.length) % fotos.length; renderLightboxContent(); }
+    if (e.key === 'ArrowRight') { currentIdx = (currentIdx + 1) % fotos.length; renderLightboxContent(); }
+  });
+
+  loadFotos();
+</script>
+</body>
+</html>

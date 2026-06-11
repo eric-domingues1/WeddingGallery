@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eric & Marília · Compartilhe seu momento</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:     #faf7f4;
+      --blush:     #f0e4da;
+      --gold:      #c9a96e;
+      --gold-deep: #a07840;
+      --text:      #2e2319;
+      --muted:     #8a7060;
+      --white:     #ffffff;
+      --radius:    16px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-top: 80px;
+      text-align: center;
+      padding: 60px 24px 80px;
+      position: relative;
+      overflow: hidden;
+      background-image: url('/static/capa.jpg');
+      background-size: cover;
+      background-position: center top;
+    }
+
+    /* escurecimento suave sobre a foto */
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(20,12,6,0.45) 0%,
+        rgba(20,12,6,0.25) 40%,
+        rgba(20,12,6,0.55) 100%
+      );
+      pointer-events: none;
+      z-index: 0;
+    }
+    .hero::after { display: none; }
+
+    /* todos os filhos do hero ficam acima do overlay */
+    .hero > * { position: relative; z-index: 1; }
+
+    .eyebrow {
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #f0d9b5;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(2.2rem, 9vw, 6rem);
+      font-weight: 400;
+      line-height: 1.08;
+      letter-spacing: -0.01em;
+      color: #fff !important;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .hero h1 em {
+      font-style: italic;
+      color: var(--gold-deep);
+    }
+
+    .divider {
+      width: 56px;
+      height: 1px;
+      background: var(--gold);
+      margin: 8px auto;
+      opacity: 0.7;
+    }
+
+    .hero p {
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.95);
+      max-width: 420px;
+      font-weight: 300;
+      margin-bottom: 30px;
+      text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+      font-weight: 500;
+      margin-top: 30px;
+    }
+
+    /* ── UPLOAD — botão flutuante ── */
+    .upload-card {
+      background: none;
+      border: none;
+      padding: 0;
+      width: 100%;
+      max-width: 460px;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .drop-area { display: none; }
+
+    #fileInput { display: none; }
+
+    .btn-upload {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 36px;
+      background: var(--gold);
+      color: var(--white);
+      border: none;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      font-family: 'Inter', sans-serif;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+      letter-spacing: 0.01em;
+    }
+    .btn-upload:hover { background: var(--gold-deep); transform: scale(1.03); }
+    .btn-upload:active { transform: scale(0.97); }
+
+    .upload-hint {
+      margin-top: 10px;
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.6);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    }
+
+    /* file list */
+    #fileList {
+      margin-top: 16px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(201,169,110,0.3);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.9);
+    }
+    .file-item span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* send button */
+    #btnSend {
+      display: none;
+      width: 100%;
+      margin-top: 14px;
+      padding: 14px;
+      background: var(--gold);
+      color: var(--white);
+      border: none;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: background 0.2s, transform 0.1s;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    }
+    #btnSend:hover { background: var(--gold-deep); }
+    #btnSend:active { transform: scale(0.98); }
+    #btnSend:disabled { background: #c8b8a8; cursor: default; }
+
+    /* progress bar */
+    #progressWrap { display: none; margin-top: 16px; }
+    #progressBar {
+      height: 4px;
+      background: var(--blush);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    #progressFill {
+      height: 100%;
+      width: 0%;
+      background: var(--gold);
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+    #progressLabel { font-size: 0.78rem; color: rgba(255,255,255,0.7); margin-top: 6px; text-align: center; }
+
+    /* success */
+    #successBox {
+      display: none;
+      text-align: center;
+      padding: 20px 0 4px;
+    }
+    #successBox .check { font-size: 2.4rem; margin-bottom: 10px; }
+    #successBox h3 { font-family: 'Playfair Display', serif; font-weight: 400; font-size: 1.2rem; color: #fff; margin-bottom: 6px; }
+    #successBox p { font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-bottom: 18px; }
+    .link-galeria {
+      color: #f0d9b5;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.9rem;
+      border-bottom: 1px solid rgba(201,169,110,0.6);
+      padding-bottom: 1px;
+    }
+
+    /* ── NAV BOTTOM ── */
+    .nav-bottom {
+      margin-top: 36px;
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.6);
+    }
+    .nav-bottom a {
+      color: #f0d9b5;
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s;
+    }
+    .nav-bottom a:hover { border-color: var(--gold-deep); }
+
+    /* error chip */
+    .error-list { margin-top: 12px; }
+    .error-chip {
+      background: #fdecea;
+      color: #b33;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 0.78rem;
+      margin-bottom: 4px;
+    }
+
+    @media (max-width: 520px) {
+      .upload-card { padding: 28px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<section class="hero">
+  <p class="eyebrow">1 de Agosto de 2026</p>
+  <h1>Eric <em>&</em><br>Marília</h1>
+  <div class="divider"></div>
+  <p>Você faz parte deste momento. Compartilhe suas fotos e vídeos — eles vão fazer parte da nossa memória para sempre.</p>
+
+  <div class="upload-card">
+    <div class="drop-area" id="dropArea"></div>
+
+    <button class="btn-upload" onclick="document.getElementById('fileInput').click()">
+      📷 Enviar minhas fotos
+    </button>
+    <p class="upload-hint">Fotos e vídeos · até 100MB por arquivo</p>
+    <input type="file" id="fileInput" multiple accept="image/*,video/*">
+
+    <div id="fileList"></div>
+    <div id="errorList" class="error-list"></div>
+
+    <button id="btnSend">Enviar fotos →</button>
+
+    <div id="progressWrap">
+      <div id="progressBar"><div id="progressFill"></div></div>
+      <p id="progressLabel">Enviando…</p>
+    </div>
+
+    <div id="successBox">
+      <div class="check">✨</div>
+      <h3>Fotos enviadas!</h3>
+      <p>Obrigado por compartilhar este momento com a gente.</p>
+      <a href="/galeria" class="link-galeria">Ver galeria do casamento →</a>
+    </div>
+  </div>
+
+  <p class="nav-bottom">
+    <a href="/galeria">Ver galeria de fotos →</a>
+  </p>
+</section>
+
+<script>
+  const dropArea  = document.getElementById('dropArea');
+  const fileInput = document.getElementById('fileInput');
+  const fileList  = document.getElementById('fileList');
+  const errorList = document.getElementById('errorList');
+  const btnSend   = document.getElementById('btnSend');
+  const progressWrap = document.getElementById('progressWrap');
+  const progressFill = document.getElementById('progressFill');
+  const progressLabel = document.getElementById('progressLabel');
+  const successBox = document.getElementById('successBox');
+
+  let selectedFiles = [];
+
+  // drag & drop
+  ['dragenter','dragover'].forEach(e => dropArea.addEventListener(e, ev => { ev.preventDefault(); dropArea.classList.add('over'); }));
+  ['dragleave','drop'].forEach(e => dropArea.addEventListener(e, ev => { ev.preventDefault(); dropArea.classList.remove('over'); }));
+  dropArea.addEventListener('drop', ev => addFiles(ev.dataTransfer.files));
+  fileInput.addEventListener('change', () => addFiles(fileInput.files));
+
+  function addFiles(newFiles) {
+    for (const f of newFiles) selectedFiles.push(f);
+    renderList();
+  }
+
+  function renderList() {
+    fileList.innerHTML = '';
+    errorList.innerHTML = '';
+    selectedFiles.forEach((f, i) => {
+      const div = document.createElement('div');
+      div.className = 'file-item';
+      const mb = (f.size / 1024 / 1024).toFixed(1);
+      div.innerHTML = `<span>📎 ${f.name}</span><small>${mb} MB</small>`;
+      fileList.appendChild(div);
+    });
+    btnSend.style.display = selectedFiles.length ? 'block' : 'none';
+  }
+
+  btnSend.addEventListener('click', async () => {
+    if (!selectedFiles.length) return;
+    btnSend.disabled = true;
+    progressWrap.style.display = 'block';
+    errorList.innerHTML = '';
+
+    const formData = new FormData();
+    selectedFiles.forEach(f => formData.append('files', f));
+
+    try {
+      // simulate progress
+      let prog = 0;
+      const ticker = setInterval(() => {
+        prog = Math.min(prog + Math.random() * 12, 88);
+        progressFill.style.width = prog + '%';
+        progressLabel.textContent = `Enviando ${selectedFiles.length} arquivo(s)…`;
+      }, 300);
+
+      const resp = await fetch('/upload', { method: 'POST', body: formData });
+      clearInterval(ticker);
+      progressFill.style.width = '100%';
+
+      const data = await resp.json();
+
+      setTimeout(() => {
+        progressWrap.style.display = 'none';
+        dropArea.style.display = 'none';
+        fileList.innerHTML = '';
+        btnSend.style.display = 'none';
+        successBox.style.display = 'block';
+
+        if (data.errors && data.errors.length) {
+          data.errors.forEach(e => {
+            const chip = document.createElement('div');
+            chip.className = 'error-chip';
+            chip.textContent = e;
+            errorList.appendChild(chip);
+          });
+        }
+      }, 600);
+    } catch(err) {
+      progressWrap.style.display = 'none';
+      btnSend.disabled = false;
+      alert('Erro ao enviar. Tente novamente.');
+    }
+  });
+</script>
+</body>
+</html>

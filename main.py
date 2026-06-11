@@ -5,6 +5,8 @@ import os
 import uuid
 import boto3
 from botocore.client import Config
+from dotenv import load_dotenv
+load_dotenv()
 
 app = FastAPI()
 

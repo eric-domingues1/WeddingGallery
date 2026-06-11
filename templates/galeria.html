@@ -26,7 +26,53 @@
       min-height: 100vh;
     }
 
-    /* ── HEADER ── */
+    /* ── HERO BANNER ── */
+    .hero-banner {
+      position: relative;
+      width: 100%;
+      height: clamp(220px, 40vw, 420px);
+      overflow: hidden;
+      background: var(--blush);
+    }
+    .hero-banner img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+    }
+    .hero-banner::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(20,12,6,0.15) 0%, rgba(20,12,6,0.55) 100%);
+    }
+    .hero-banner-text {
+      position: absolute;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      z-index: 1;
+      width: 100%;
+    }
+    .hero-banner-text h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(2rem, 6vw, 3.8rem);
+      font-weight: 400;
+      color: #fff;
+      line-height: 1.1;
+    }
+    .hero-banner-text h1 em { font-style: italic; color: #f0d9b5; }
+    .hero-banner-text .date {
+      font-size: 0.8rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.75);
+      margin-top: 8px;
+    }
+
+    /* ── HEADER (sem banner) ── */
     header {
       padding: 48px 24px 0;
       text-align: center;
@@ -53,12 +99,7 @@
       margin: 18px auto 14px;
       opacity: 0.7;
     }
-    header p {
-      font-size: 0.9rem;
-      color: var(--muted);
-      font-weight: 300;
-      margin-bottom: 10px;
-    }
+    header p { font-size: 0.9rem; color: var(--muted); font-weight: 300; margin-bottom: 10px; }
     .back-link {
       display: inline-block;
       margin-top: 6px;
@@ -70,23 +111,50 @@
     }
     .back-link:hover { border-color: var(--gold-deep); }
 
+    /* ── SUB-HEADER ── */
+    .sub-header {
+      text-align: center;
+      padding: 28px 24px 0;
+    }
+    .sub-header p { font-size: 0.9rem; color: var(--muted); font-weight: 300; margin-bottom: 8px; }
+
     /* ── COUNTER ── */
     #counter {
       text-align: center;
       font-size: 0.78rem;
       color: var(--muted);
-      margin: 18px 0 0;
+      margin: 10px 0 0;
       letter-spacing: 0.05em;
     }
 
-    /* ── GRID ── */
-    .grid-wrap { padding: 24px 20px 60px; max-width: 1200px; margin: 0 auto; }
-
-    .grid {
-      columns: 3 280px;
-      column-gap: 12px;
+    /* ── FILTROS ── */
+    .filters {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin: 20px 24px 0;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: 7px 18px;
+      border-radius: 50px;
+      border: 1.5px solid var(--gold);
+      background: transparent;
+      color: var(--gold-deep);
+      font-size: 0.8rem;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+    .filter-btn.active, .filter-btn:hover {
+      background: var(--gold);
+      color: var(--white);
     }
 
+    /* ── GRID ── */
+    .grid-wrap { padding: 20px 20px 60px; max-width: 1200px; margin: 0 auto; }
+    .grid { columns: 3 280px; column-gap: 12px; }
     .grid-item {
       break-inside: avoid;
       margin-bottom: 12px;
@@ -96,19 +164,12 @@
       position: relative;
       background: var(--blush);
     }
-
-    .grid-item img,
-    .grid-item video {
+    .grid-item img, .grid-item video {
       width: 100%;
       display: block;
       transition: transform 0.35s ease, filter 0.35s ease;
     }
-    .grid-item:hover img,
-    .grid-item:hover video {
-      transform: scale(1.03);
-      filter: brightness(0.92);
-    }
-
+    .grid-item:hover img, .grid-item:hover video { transform: scale(1.03); filter: brightness(0.92); }
     .grid-item .overlay {
       position: absolute;
       inset: 0;
@@ -120,25 +181,16 @@
       justify-content: center;
     }
     .grid-item:hover .overlay { background: rgba(46,35,25,0.12); }
-    .overlay-icon {
-      opacity: 0;
-      font-size: 1.6rem;
-      transition: opacity 0.3s;
-    }
+    .overlay-icon { opacity: 0; font-size: 1.6rem; transition: opacity 0.3s; }
     .grid-item:hover .overlay-icon { opacity: 1; }
 
+    /* hidden */
+    .grid-item.hidden { display: none; }
+
     /* empty state */
-    .empty {
-      text-align: center;
-      padding: 80px 24px;
-    }
+    .empty { text-align: center; padding: 80px 24px; }
     .empty p { color: var(--muted); font-size: 0.95rem; margin-bottom: 20px; }
-    .empty a {
-      color: var(--gold-deep);
-      text-decoration: none;
-      border-bottom: 1px solid var(--gold);
-      padding-bottom: 2px;
-    }
+    .empty a { color: var(--gold-deep); text-decoration: none; border-bottom: 1px solid var(--gold); padding-bottom: 2px; }
 
     /* skeleton */
     .skeleton {
@@ -151,12 +203,33 @@
     }
     @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
+    /* ── RODAPÉ ── */
+    footer {
+      text-align: center;
+      padding: 32px 24px 48px;
+      border-top: 1px solid var(--blush);
+    }
+    footer .footer-names {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.3rem;
+      font-weight: 400;
+      color: var(--gold-deep);
+      margin-bottom: 6px;
+    }
+    footer .footer-names em { font-style: italic; }
+    footer .footer-date {
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
     /* ── LIGHTBOX ── */
     #lightbox {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(20,12,6,0.92);
+      background: rgba(20,12,6,0.93);
       z-index: 1000;
       align-items: center;
       justify-content: center;
@@ -165,14 +238,32 @@
     }
     #lightbox.open { display: flex; }
 
-    #lightbox img,
-    #lightbox video {
+    #lb-content {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #lb-content img, #lb-content video {
       max-width: min(90vw, 1000px);
-      max-height: 86vh;
+      max-height: 82vh;
       border-radius: 10px;
       object-fit: contain;
       box-shadow: 0 20px 80px rgba(0,0,0,0.5);
+      transition: opacity 0.2s;
     }
+
+    /* loading spinner no lightbox */
+    .lb-spinner {
+      width: 40px; height: 40px;
+      border: 3px solid rgba(255,255,255,0.15);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      position: absolute;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     .lb-close {
       position: fixed;
@@ -184,6 +275,7 @@
       border: none;
       line-height: 1;
       transition: color 0.2s;
+      z-index: 10;
     }
     .lb-close:hover { color: #fff; }
 
@@ -200,22 +292,70 @@
       border-radius: 8px;
       transition: background 0.2s;
       backdrop-filter: blur(4px);
+      z-index: 10;
     }
     .lb-nav:hover { background: rgba(255,255,255,0.2); }
     #lb-prev { left: 16px; }
     #lb-next { right: 16px; }
 
-    .lb-counter {
+    /* ── BARRA INFERIOR DO LIGHTBOX ── */
+    .lb-bar {
       position: fixed;
-      bottom: 22px; left: 50%;
-      transform: translateX(-50%);
+      bottom: 0; left: 0; right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 14px 24px;
+      background: rgba(20,12,6,0.7);
+      backdrop-filter: blur(8px);
+      z-index: 10;
+    }
+    .lb-counter {
       font-size: 0.78rem;
       color: rgba(255,255,255,0.5);
       letter-spacing: 0.1em;
+      flex: 1;
+      text-align: center;
     }
+
+    /* botões da barra */
+    .lb-action {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.85);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Inter', sans-serif;
+      transition: background 0.2s;
+      text-decoration: none;
+    }
+    .lb-action:hover { background: rgba(255,255,255,0.2); }
+
+    /* swipe hint */
+    .swipe-hint {
+      position: fixed;
+      bottom: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,0.35);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      pointer-events: none;
+      z-index: 10;
+      animation: fadeHint 3s ease forwards;
+    }
+    @keyframes fadeHint { 0%{opacity:1} 70%{opacity:1} 100%{opacity:0} }
 
     @media (max-width: 600px) {
       .lb-nav { display: none; }
+      .lb-action span { display: none; }
+      .lb-action { padding: 8px 10px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -226,19 +366,40 @@
 </head>
 <body>
 
-<header>
+<!-- Banner com foto de capa -->
+<div class="hero-banner" id="heroBanner" style="display:none">
+  <img src="/static/capa.jpg" alt="Eric e Marília" id="bannerImg"
+       onerror="document.getElementById('heroBanner').style.display='none'; document.getElementById('headerFallback').style.display='block'">
+  <div class="hero-banner-text">
+    <h1>Eric <em>&</em> Marília</h1>
+    <p class="date">1 de agosto de 2026</p>
+  </div>
+</div>
+
+<!-- Header fallback (se não tiver foto de capa) -->
+<header id="headerFallback" style="display:none">
   <p class="eyebrow">Galeria de fotos</p>
   <h1>Eric <em>&</em> Marília</h1>
   <div class="divider"></div>
   <p>Cada foto é um pedacinho deste dia especial.</p>
-  <a class="back-link" href="/">← Enviar mais fotos</a>
 </header>
+
+<div class="sub-header">
+  <p>Cada foto é um pedacinho deste dia especial.</p>
+  <a class="back-link" href="/">← Enviar mais fotos</a>
+</div>
 
 <p id="counter"></p>
 
+<!-- Filtros -->
+<div class="filters">
+  <button class="filter-btn active" data-filter="todos">Todos</button>
+  <button class="filter-btn" data-filter="imagem">📷 Fotos</button>
+  <button class="filter-btn" data-filter="video">🎥 Vídeos</button>
+</div>
+
 <div class="grid-wrap">
   <div class="grid" id="grid">
-    <!-- skeletons enquanto carrega -->
     <div class="skeleton"></div>
     <div class="skeleton" style="height:260px"></div>
     <div class="skeleton" style="height:180px"></div>
@@ -248,47 +409,88 @@
   </div>
 </div>
 
+<!-- Rodapé -->
+<footer>
+  <p class="footer-names">Eric <em>&</em> Marília</p>
+  <p class="footer-date">1 de agosto de 2026</p>
+</footer>
+
 <!-- Lightbox -->
 <div id="lightbox" role="dialog" aria-modal="true">
   <button class="lb-close" id="lb-close" aria-label="Fechar">✕</button>
   <button class="lb-nav" id="lb-prev" aria-label="Anterior">‹</button>
   <div id="lb-content"></div>
   <button class="lb-nav" id="lb-next" aria-label="Próxima">›</button>
-  <p class="lb-counter" id="lb-counter"></p>
+  <div class="lb-bar">
+    <a class="lb-action" id="lb-download" href="#" download aria-label="Baixar">
+      ⬇ <span>Baixar</span>
+    </a>
+    <p class="lb-counter" id="lb-counter"></p>
+    <button class="lb-action" id="lb-share" aria-label="Compartilhar">
+      ↗ <span>Compartilhar</span>
+    </button>
+  </div>
 </div>
 
 <script>
   let fotos = [];
   let currentIdx = 0;
+  let filtroAtivo = 'todos';
+  let swipeHintShown = false;
+
+  // Mostrar banner
+  const banner = document.getElementById('heroBanner');
+  const fallback = document.getElementById('headerFallback');
+  const bannerImg = document.getElementById('bannerImg');
+  bannerImg.onload = () => { banner.style.display = 'block'; };
+  bannerImg.onerror = () => { banner.style.display = 'none'; fallback.style.display = 'block'; };
+  // tenta carregar
+  if (bannerImg.complete && bannerImg.naturalWidth > 0) {
+    banner.style.display = 'block';
+  } else if (bannerImg.complete) {
+    fallback.style.display = 'block';
+  }
 
   async function loadFotos() {
     const resp = await fetch('/api/fotos');
     fotos = await resp.json();
+    renderGrid();
+  }
 
+  function renderGrid() {
     const grid = document.getElementById('grid');
     const counter = document.getElementById('counter');
     grid.innerHTML = '';
+
+    const visiveis = filtroAtivo === 'todos' ? fotos : fotos.filter(f => f.tipo === filtroAtivo);
 
     if (!fotos.length) {
       grid.innerHTML = `<div class="empty" style="column-span:all">
         <p>Nenhuma foto ainda. Seja o primeiro a compartilhar!</p>
         <a href="/">Enviar fotos →</a>
       </div>`;
+      counter.textContent = '';
       return;
     }
 
     counter.textContent = `${fotos.length} momento${fotos.length !== 1 ? 's' : ''} compartilhado${fotos.length !== 1 ? 's' : ''}`;
 
-    fotos.forEach((item, idx) => {
+    if (!visiveis.length) {
+      grid.innerHTML = `<div class="empty" style="column-span:all"><p>Nenhum item nesta categoria.</p></div>`;
+      return;
+    }
+
+    visiveis.forEach((item) => {
+      // índice real no array fotos (para o lightbox navegar por todos)
+      const realIdx = fotos.indexOf(item);
       const div = document.createElement('div');
       div.className = 'grid-item';
       div.setAttribute('tabindex', '0');
       div.setAttribute('role', 'button');
-      div.setAttribute('aria-label', `Ver foto ${idx + 1}`);
 
       if (item.tipo === 'imagem') {
         div.innerHTML = `
-          <img src="${item.url}" loading="lazy" alt="Foto do casamento ${idx + 1}">
+          <img src="${item.url}" loading="lazy" alt="Foto do casamento">
           <div class="overlay"><span class="overlay-icon">🔍</span></div>`;
       } else {
         div.innerHTML = `
@@ -296,17 +498,37 @@
           <div class="overlay"><span class="overlay-icon">▶</span></div>`;
       }
 
-      div.addEventListener('click', () => openLightbox(idx));
-      div.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openLightbox(idx); });
+      div.addEventListener('click', () => openLightbox(realIdx));
+      div.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openLightbox(realIdx); });
       grid.appendChild(div);
     });
   }
+
+  // Filtros
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filtroAtivo = btn.dataset.filter;
+      renderGrid();
+    });
+  });
 
   function openLightbox(idx) {
     currentIdx = idx;
     renderLightboxContent();
     document.getElementById('lightbox').classList.add('open');
     document.body.style.overflow = 'hidden';
+
+    // swipe hint na primeira abertura mobile
+    if (!swipeHintShown && 'ontouchstart' in window) {
+      swipeHintShown = true;
+      const hint = document.createElement('div');
+      hint.className = 'swipe-hint';
+      hint.textContent = '← deslize para navegar →';
+      document.getElementById('lightbox').appendChild(hint);
+      setTimeout(() => hint.remove(), 3200);
+    }
   }
 
   function closeLightbox() {
@@ -318,10 +540,42 @@
   function renderLightboxContent() {
     const item = fotos[currentIdx];
     const content = document.getElementById('lb-content');
-    content.innerHTML = item.tipo === 'imagem'
-      ? `<img src="${item.url}" alt="Foto ${currentIdx + 1}">`
-      : `<video src="${item.url}" controls autoplay style="max-width:min(90vw,1000px);max-height:86vh;border-radius:10px;"></video>`;
+
+    // loading spinner
+    content.innerHTML = '<div class="lb-spinner"></div>';
+
+    if (item.tipo === 'imagem') {
+      const img = new Image();
+      img.alt = `Foto ${currentIdx + 1}`;
+      img.style.opacity = '0';
+      img.onload = () => {
+        content.innerHTML = '';
+        img.style.opacity = '1';
+        content.appendChild(img);
+      };
+      img.src = item.url;
+    } else {
+      content.innerHTML = `<video src="${item.url}" controls autoplay style="max-width:min(90vw,1000px);max-height:82vh;border-radius:10px;"></video>`;
+    }
+
     document.getElementById('lb-counter').textContent = `${currentIdx + 1} / ${fotos.length}`;
+
+    // botão download
+    const dl = document.getElementById('lb-download');
+    dl.href = item.url;
+    dl.setAttribute('download', `foto-casamento-${currentIdx + 1}.${item.tipo === 'imagem' ? 'jpg' : 'mp4'}`);
+
+    // botão compartilhar
+    document.getElementById('lb-share').onclick = async () => {
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: 'Eric & Marília', url: item.url });
+        } catch(e) {}
+      } else {
+        await navigator.clipboard.writeText(item.url);
+        alert('Link copiado!');
+      }
+    };
   }
 
   document.getElementById('lb-close').addEventListener('click', closeLightbox);
@@ -337,6 +591,20 @@
   document.getElementById('lightbox').addEventListener('click', e => {
     if (e.target === document.getElementById('lightbox')) closeLightbox();
   });
+
+  // swipe touch
+  let touchStartX = 0;
+  document.getElementById('lightbox').addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+  document.getElementById('lightbox').addEventListener('touchend', e => {
+    const diff = touchStartX - e.changedTouches[0].screenX;
+    if (Math.abs(diff) < 50) return;
+    currentIdx = diff > 0
+      ? (currentIdx + 1) % fotos.length
+      : (currentIdx - 1 + fotos.length) % fotos.length;
+    renderLightboxContent();
+  }, { passive: true });
 
   document.addEventListener('keydown', e => {
     if (!document.getElementById('lightbox').classList.contains('open')) return;

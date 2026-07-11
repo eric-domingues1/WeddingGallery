@@ -6,6 +6,10 @@ Aplicação web para convidados enviarem e visualizarem fotos e vídeos de casam
 
 ---
 
+## 🎥 Demonstração
+
+![WeddingGallery Demo](docs/demo.gif)
+
 ## ✨ Funcionalidades
 
 - Upload de fotos e vídeos diretamente pelo celular ou computador

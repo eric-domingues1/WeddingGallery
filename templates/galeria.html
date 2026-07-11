@@ -183,6 +183,23 @@
     .grid-item:hover .overlay { background: rgba(46,35,25,0.12); }
     .overlay-icon { opacity: 0; font-size: 1.6rem; transition: opacity 0.3s; }
     .grid-item:hover .overlay-icon { opacity: 1; }
+    .media-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(20,12,6,0.6);
+      color: #fff;
+      font-size: 0.7rem;
+      padding: 4px 9px;
+      border-radius: 50px;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 2;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
 
     /* hidden */
     .grid-item.hidden { display: none; }
@@ -415,6 +432,7 @@
 <footer>
   <p class="footer-names">Eric <em>&</em> Marília</p>
   <p class="footer-date">1 de agosto de 2026</p>
+  <p style="margin-top:14px; font-size:0.7rem; color:var(--muted); opacity:0.7;">Desenvolvido por Eric Domingues</p>
 </footer>
 
 <!-- Lightbox -->
@@ -490,15 +508,16 @@
       div.setAttribute('tabindex', '0');
       div.setAttribute('role', 'button');
 
-      if (item.tipo === 'imagem') {
-        div.innerHTML = `
-          <img src="${item.url}" loading="lazy" alt="Foto do casamento">
-          <div class="overlay"><span class="overlay-icon">🔍</span></div>`;
-      } else {
-        div.innerHTML = `
-          <video src="${item.url}" muted playsinline preload="metadata"></video>
-          <div class="overlay"><span class="overlay-icon">▶</span></div>`;
-      }
+     if (item.tipo === 'imagem') {
+      div.innerHTML = `
+      <img src="${item.url}" loading="lazy" alt="Foto do casamento">
+      <div class="overlay"><span class="overlay-icon">🔍</span></div>`;
+    } else {
+      div.innerHTML = `
+        <video src="${item.url}" muted playsinline preload="metadata"></video>
+        <span class="media-badge">🎥 Vídeo</span>
+        <div class="overlay"><span class="overlay-icon">▶</span></div>`;
+    }
 
       div.addEventListener('click', () => openLightbox(realIdx));
       div.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openLightbox(realIdx); });
@@ -590,9 +609,31 @@
     renderLightboxContent();
   });
 
-  document.getElementById('lightbox').addEventListener('click', e => {
-    if (e.target === document.getElementById('lightbox')) closeLightbox();
-  });
+  document.getElementById('lightbox').addEventListener('click', (e) => {
+  const lightboxEl = document.getElementById('lightbox');
+
+  if (e.target === lightboxEl) {
+    closeLightbox();
+    return;
+  }
+
+  if (e.target.closest('.lb-nav, .lb-close, .lb-bar')) return;
+
+  const item = fotos[currentIdx];
+  if (item.tipo !== 'imagem') return;
+
+  const rect = lightboxEl.getBoundingClientRect();
+  const clickX = e.clientX - rect.left;
+  const half = rect.width / 2;
+
+  if (clickX < half) {
+    currentIdx = (currentIdx - 1 + fotos.length) % fotos.length;
+  } else {
+    currentIdx = (currentIdx + 1) % fotos.length;
+  }
+  renderLightboxContent();
+});
+  
 
   // swipe touch
   let touchStartX = 0;

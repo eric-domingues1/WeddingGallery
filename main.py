@@ -39,6 +39,11 @@ CONTENT_TYPES = {
 
 @app.get("/", response_class=HTMLResponse)
 def home():
+    with open("templates/em-breve.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+@app.get("/eric-marilia/x7k2p9", response_class=HTMLResponse)
+def galeria_eric_marilia():
     with open("templates/index.html", "r", encoding="utf-8") as f:
         return f.read()
 

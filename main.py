@@ -1,8 +1,10 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import os
 import uuid
+import secrets
 import boto3
 from botocore.client import Config
 from dotenv import load_dotenv
@@ -35,6 +37,23 @@ CONTENT_TYPES = {
     "png": "image/png", "webp": "image/webp",
     "mp4": "video/mp4", "mov": "video/quicktime", "avi": "video/x-msvideo",
 }
+
+# ── Autenticação do admin ──
+security = HTTPBasic()
+ADMIN_USER = os.getenv("ADMIN_USER", "admin")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+
+
+def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
+    usuario_correto = secrets.compare_digest(credentials.username, ADMIN_USER)
+    senha_correta = secrets.compare_digest(credentials.password, ADMIN_PASSWORD or "")
+    if not (usuario_correto and senha_correta):
+        raise HTTPException(
+            status_code=401,
+            detail="Usuário ou senha incorretos",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return credentials.username
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -98,12 +117,28 @@ def listar_fotos():
             base_url = R2_PUBLIC_URL.rstrip("/") if R2_PUBLIC_URL else f"{R2_ENDPOINT}/{R2_BUCKET}"
             url = f"{base_url}/{nome}"
             if ext in {"jpg", "jpeg", "png", "webp"}:
-                arquivos.append({"url": url, "tipo": "imagem"})
+                arquivos.append({"url": url, "tipo": "imagem", "key": nome})
             elif ext in {"mp4", "mov", "avi"}:
-                arquivos.append({"url": url, "tipo": "video"})
+                arquivos.append({"url": url, "tipo": "video", "key": nome})
         return JSONResponse(arquivos)
     except Exception as e:
         return JSONResponse([], status_code=200)
+
+
+# ── Admin ──
+@app.get("/admin", response_class=HTMLResponse)
+def admin(user: str = Depends(verify_admin)):
+    with open("templates/admin.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+
+@app.delete("/admin/api/fotos/{key}")
+def deletar_foto(key: str, user: str = Depends(verify_admin)):
+    try:
+        s3.delete_object(Bucket=R2_BUCKET, Key=key)
+        return JSONResponse({"deleted": key})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 app.mount("/static", StaticFiles(directory="static"), name="static")

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Admin · Galeria Eric & Marília</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --cream: #faf7f4; --blush: #f0e4da; --gold: #c9a96e;
+      --gold-deep: #a07840; --text: #2e2319; --muted: #8a7060; --white: #ffffff;
+      --danger: #b3261e;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+
+    header { padding: 40px 24px 8px; text-align: center; }
+    .eyebrow { font-size: 11px; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold-deep); margin-bottom: 12px; }
+    header h1 { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.8rem, 5vw, 2.6rem); font-weight: 400; margin-bottom: 6px; }
+    header p { font-size: 0.85rem; color: var(--muted); font-weight: 300; }
+
+    #counter { text-align: center; font-size: 0.78rem; color: var(--muted); margin: 14px 0 0; letter-spacing: 0.05em; }
+
+    .grid-wrap { padding: 24px 20px 60px; max-width: 1200px; margin: 0 auto; }
+    .grid { columns: 3 260px; column-gap: 12px; }
+    .grid-item {
+      break-inside: avoid; margin-bottom: 12px; border-radius: 12px; overflow: hidden;
+      position: relative; background: var(--blush);
+    }
+    .grid-item img, .grid-item video { width: 100%; display: block; }
+
+    .del-btn {
+      position: absolute; top: 8px; right: 8px;
+      background: rgba(20,12,6,0.55); color: #fff; border: none;
+      width: 34px; height: 34px; border-radius: 50%;
+      font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s, transform 0.1s;
+      backdrop-filter: blur(4px);
+    }
+    .del-btn:hover { background: var(--danger); transform: scale(1.06); }
+    .del-btn:disabled { opacity: 0.5; cursor: default; }
+
+    .grid-item.removing { opacity: 0.35; pointer-events: none; }
+
+    .empty { text-align: center; padding: 80px 24px; color: var(--muted); }
+
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: var(--text); color: var(--cream); padding: 10px 20px; border-radius: 50px;
+      font-size: 0.85rem; opacity: 0; pointer-events: none; transition: opacity 0.25s;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">Área restrita</p>
+  <h1>Gerenciar fotos</h1>
+  <p>Clique no ✕ pra remover uma foto ou vídeo da galeria.</p>
+</header>
+
+<p id="counter"></p>
+
+<div class="grid-wrap">
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const grid = document.getElementById('grid');
+  const counter = document.getElementById('counter');
+  const toastEl = document.getElementById('toast');
+
+  function showToast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    setTimeout(() => toastEl.classList.remove('show'), 2200);
+  }
+
+  async function loadFotos() {
+    const resp = await fetch('/api/fotos');
+    const fotos = await resp.json();
+    renderGrid(fotos);
+  }
+
+  function renderGrid(fotos) {
+    grid.innerHTML = '';
+    if (!fotos.length) {
+      grid.innerHTML = `<div class="empty" style="column-span:all">Nenhuma foto na galeria ainda.</div>`;
+      counter.textContent = '';
+      return;
+    }
+    counter.textContent = `${fotos.length} item${fotos.length !== 1 ? 's' : ''}`;
+
+    fotos.forEach((item) => {
+      const div = document.createElement('div');
+      div.className = 'grid-item';
+
+      const media = item.tipo === 'imagem'
+        ? `<img src="${item.url}" loading="lazy" alt="Foto">`
+        : `<video src="${item.url}" muted playsinline preload="metadata"></video>`;
+
+      div.innerHTML = `
+        ${media}
+        <button class="del-btn" title="Excluir">✕</button>
+      `;
+
+      div.querySelector('.del-btn').addEventListener('click', () => excluir(item.key, div));
+      grid.appendChild(div);
+    });
+  }
+
+  async function excluir(key, elemento) {
+    if (!confirm('Remover este item permanentemente da galeria?')) return;
+
+    elemento.classList.add('removing');
+    const btn = elemento.querySelector('.del-btn');
+    btn.disabled = true;
+
+    try {
+      const resp = await fetch(`/admin/api/fotos/${encodeURIComponent(key)}`, { method: 'DELETE' });
+      if (!resp.ok) throw new Error('Falha ao excluir');
+      elemento.remove();
+      showToast('Item removido.');
+      const restantes = grid.querySelectorAll('.grid-item').length;
+      counter.textContent = restantes ? `${restantes} item${restantes !== 1 ? 's' : ''}` : '';
+      if (!restantes) {
+        grid.innerHTML = `<div class="empty" style="column-span:all">Nenhuma foto na galeria ainda.</div>`;
+      }
+    } catch (e) {
+      elemento.classList.remove('removing');
+      btn.disabled = false;
+      showToast('Erro ao excluir. Tente novamente.');
+    }
+  }
+
+  loadFotos();
+</script>
+</body>
+</html>

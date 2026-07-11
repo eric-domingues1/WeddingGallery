@@ -106,11 +106,17 @@
   <div class="upload-card">
     <div class="drop-area" id="dropArea"></div>
     <button class="btn-upload" onclick="document.getElementById('fileInput').click()">
-      📷 Enviar minhas fotos
-    </button>
+  📷 Enviar minhas fotos
+</button>
+
+<button class="btn-upload" style="background:transparent;border:1.5px solid var(--gold);margin-top:10px;" onclick="document.getElementById('videoInput').click()">
+  🎥 Gravar vídeo
+</button>
+<input type="file" id="videoInput" accept="video/*" capture="environment" style="display:none">
   
    
     <input type="file" id="fileInput" multiple accept="image/*,video/*">
+    
     <div id="fileList"></div>
     <div id="errorList" class="error-list"></div>
     <button id="btnSend">Enviar fotos →</button>
@@ -143,6 +149,8 @@
   let selectedFiles = [];
 
   fileInput.addEventListener('change', () => addFiles(fileInput.files));
+  const videoInput = document.getElementById('videoInput');
+  videoInput.addEventListener('change', () => addFiles(videoInput.files));
 
   function addFiles(newFiles) {
     for (const f of newFiles) {

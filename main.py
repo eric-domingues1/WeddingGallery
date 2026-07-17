@@ -71,7 +71,7 @@ def prefixo(casal: str, codigo: str) -> str:
 # ── Páginas ──
 @app.get("/", response_class=HTMLResponse)
 def raiz(request: Request):
-    return templates.TemplateResponse(request, "em_breve.html", {})
+    return templates.TemplateResponse(request, "em-breve.html", {})
 
 
 @app.get("/{casal}/{codigo}")

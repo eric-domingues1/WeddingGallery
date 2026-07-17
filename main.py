@@ -1,16 +1,24 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import FastAPI, UploadFile, File, HTTPException, Header, Request
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.templating import Jinja2Templates
 import os
+import json
 import uuid
-import secrets
 import boto3
 from botocore.client import Config
 from dotenv import load_dotenv
+
 load_dotenv()
 
 app = FastAPI()
+
+# IMPORTANTE: o mount do /static precisa vir ANTES das rotas dinâmicas
+# /{casal}/{codigo}, senão "/static/algo.jpg" seria interpretado como
+# casal="static", codigo="algo.jpg" e nunca chegaria nos arquivos estáticos.
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+templates = Jinja2Templates(directory="templates")
 
 # ── Cloudflare R2 ──
 R2_ENDPOINT = os.getenv("R2_ENDPOINT")
@@ -18,7 +26,6 @@ R2_ACCESS_KEY = os.getenv("R2_ACCESS_KEY")
 R2_SECRET_KEY = os.getenv("R2_SECRET_KEY")
 R2_BUCKET = os.getenv("R2_BUCKET")
 R2_PUBLIC_URL = os.getenv("R2_PUBLIC_URL")
-
 
 s3 = boto3.client(
     "s3",
@@ -30,115 +37,187 @@ s3 = boto3.client(
 )
 
 ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "webp", "mp4", "mov", "avi"}
-MAX_SIZE_MB = 100
-
+MAX_SIZE_MB = 400
 CONTENT_TYPES = {
     "jpg": "image/jpeg", "jpeg": "image/jpeg",
     "png": "image/png", "webp": "image/webp",
     "mp4": "video/mp4", "mov": "video/quicktime", "avi": "video/x-msvideo",
 }
 
-# ── Autenticação do admin ──
-security = HTTPBasic()
-ADMIN_USER = os.getenv("ADMIN_USER", "admin")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+CASAIS_PATH = "casais.json"
 
 
-def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
-    usuario_correto = secrets.compare_digest(credentials.username, ADMIN_USER)
-    senha_correta = secrets.compare_digest(credentials.password, ADMIN_PASSWORD or "")
-    if not (usuario_correto and senha_correta):
-        raise HTTPException(
-            status_code=401,
-            detail="Usuário ou senha incorretos",
-            headers={"WWW-Authenticate": "Basic"},
-        )
-    return credentials.username
+# ── Casais ──
+def carregar_casais() -> dict:
+    with open(CASAIS_PATH, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 
-@app.get("/", response_class=HTMLResponse)
-def home():
-    with open("templates/em-breve.html", "r", encoding="utf-8") as f:
-        return f.read()
+def get_casal(casal: str, codigo: str) -> dict:
+    """Valida se o slug+código existem e batem. Impede que alguém 'adivinhe'
+    a URL de outro casal só pelo slug, ou acesse com código errado."""
+    casais = carregar_casais()
+    dados = casais.get(casal)
+    if not dados or dados["codigo"] != codigo:
+        raise HTTPException(status_code=404, detail="Galeria não encontrada")
+    return dados
 
-@app.get("/eric-marilia/x7k2p9", response_class=HTMLResponse)
-def galeria_eric_marilia():
-    with open("templates/index.html", "r", encoding="utf-8") as f:
-        return f.read()
+
+def prefixo(casal: str, codigo: str) -> str:
+    return f"{casal}/{codigo}/"
 
 
-@app.post("/upload")
-async def upload(files: list[UploadFile] = File(...)):
+# ── Páginas ──
+@app.get("/")
+def raiz():
+    return {"status": "ok", "info": "Acesse /{casal}/{codigo} para ver a galeria de um casal."}
+
+
+@app.get("/{casal}/{codigo}")
+def home(request: Request, casal: str, codigo: str):
+    dados = get_casal(casal, codigo)
+    return templates.TemplateResponse(
+        request,
+        "index.html",
+        {"casal": casal, "codigo": codigo, **dados},
+    )
+
+
+@app.get("/{casal}/{codigo}/galeria")
+def galeria(request: Request, casal: str, codigo: str):
+    dados = get_casal(casal, codigo)
+    return templates.TemplateResponse(
+        request,
+        "galeria.html",
+        {"casal": casal, "codigo": codigo, **dados},
+    )
+
+
+@app.get("/{casal}/{codigo}/admin")
+def admin(request: Request, casal: str, codigo: str):
+    dados = get_casal(casal, codigo)
+    return templates.TemplateResponse(
+        request,
+        "admin.html",
+        {"casal": casal, "codigo": codigo, **dados},
+    )
+
+
+# ── Login do admin (valida a senha sem precisar "testar" um delete) ──
+@app.post("/api/{casal}/{codigo}/admin/login")
+def admin_login(casal: str, codigo: str, x_admin_senha: str = Header(None)):
+    dados = get_casal(casal, codigo)
+    senha_admin = os.getenv(dados["senha_admin_env"])
+
+    if not x_admin_senha or x_admin_senha != senha_admin:
+        raise HTTPException(status_code=401, detail="Senha inválida")
+    return {"status": "ok"}
+
+
+# ── Upload ──
+@app.post("/{casal}/{codigo}/upload")
+async def upload(casal: str, codigo: str, files: list[UploadFile] = File(...)):
+    get_casal(casal, codigo)
+
     uploaded = []
     errors = []
 
     for file in files:
-        ext = file.filename.lower().rsplit(".", 1)[-1] if "." in file.filename else ""
-        if ext not in ALLOWED_EXTENSIONS:
-            errors.append(f"{file.filename}: formato não suportado")
-            continue
+        try:
+            print(f"\n========== NOVO UPLOAD ==========")
+            print(f"Arquivo: {file.filename}")
 
-        conteudo = await file.read()
-        tamanho_mb = len(conteudo) / (1024 * 1024)
+            ext = file.filename.lower().rsplit(".", 1)[-1] if "." in file.filename else ""
 
-        if tamanho_mb > MAX_SIZE_MB:
-            errors.append(f"{file.filename}: arquivo maior que 100MB")
-            continue
+            if ext not in ALLOWED_EXTENSIONS:
+                msg = f"{file.filename}: formato não suportado"
+                print(msg)
+                errors.append(msg)
+                continue
 
-        nome_unico = f"{uuid.uuid4()}_{file.filename}"
-        content_type = CONTENT_TYPES.get(ext, "application/octet-stream")
+            # Descobre o tamanho do arquivo
+            file.file.seek(0, 2)
+            tamanho = file.file.tell()
+            file.file.seek(0)
 
-        s3.put_object(
-            Bucket=R2_BUCKET,
-            Key=nome_unico,
-            Body=conteudo,
-            ContentType=content_type,
-        )
+            tamanho_mb = tamanho / (1024 * 1024)
 
-        uploaded.append(nome_unico)
+            print(f"Tamanho: {tamanho_mb:.2f} MB")
 
-    return JSONResponse({"uploaded": len(uploaded), "errors": errors})
+            if tamanho_mb > MAX_SIZE_MB:
+                msg = f"{file.filename}: arquivo maior que {MAX_SIZE_MB}MB"
+                print(msg)
+                errors.append(msg)
+                continue
 
+            nome_unico = f"{prefixo(casal, codigo)}{uuid.uuid4()}_{file.filename}"
 
-@app.get("/galeria", response_class=HTMLResponse)
-def galeria():
-    with open("templates/galeria.html", "r", encoding="utf-8") as f:
-        return f.read()
+            content_type = CONTENT_TYPES.get(
+                ext,
+                file.content_type or "application/octet-stream"
+            )
 
+            print("Enviando para o Cloudflare R2...")
 
-@app.get("/api/fotos")
-def listar_fotos():
+            s3.upload_fileobj(
+                Fileobj=file.file,
+                Bucket=R2_BUCKET,
+                Key=nome_unico,
+                ExtraArgs={
+                    "ContentType": content_type
+                }
+            )
+
+            print("✅ Upload concluído!")
+
+            uploaded.append(nome_unico)
+
+        except Exception as e:
+            print("❌ ERRO NO UPLOAD:")
+            print(type(e).__name__)
+            print(str(e))
+
+            errors.append(f"{file.filename}: {str(e)}")
+
+    return JSONResponse({
+        "uploaded": len(uploaded),
+        "errors": errors
+    })
+
+# ── Listar fotos (filtradas por casal) ──
+@app.get("/api/{casal}/{codigo}/fotos")
+def listar_fotos(casal: str, codigo: str):
+    get_casal(casal, codigo)
     try:
-        resp = s3.list_objects_v2(Bucket=R2_BUCKET)
+        resp = s3.list_objects_v2(Bucket=R2_BUCKET, Prefix=prefixo(casal, codigo))
         arquivos = []
         for obj in sorted(resp.get("Contents", []), key=lambda x: x["LastModified"], reverse=True):
             nome = obj["Key"]
             ext = nome.lower().rsplit(".", 1)[-1] if "." in nome else ""
             base_url = R2_PUBLIC_URL.rstrip("/") if R2_PUBLIC_URL else f"{R2_ENDPOINT}/{R2_BUCKET}"
             url = f"{base_url}/{nome}"
+            arquivo = nome.split("/")[-1]  # nome do arquivo sem o prefixo casal/codigo/
+
             if ext in {"jpg", "jpeg", "png", "webp"}:
-                arquivos.append({"url": url, "tipo": "imagem", "key": nome})
+                arquivos.append({"url": url, "tipo": "imagem", "arquivo": arquivo})
             elif ext in {"mp4", "mov", "avi"}:
-                arquivos.append({"url": url, "tipo": "video", "key": nome})
+                arquivos.append({"url": url, "tipo": "video", "arquivo": arquivo})
+
         return JSONResponse(arquivos)
-    except Exception as e:
+    except Exception:
         return JSONResponse([], status_code=200)
 
 
-# ── Admin ──
-@app.get("/admin", response_class=HTMLResponse)
-def admin(user: str = Depends(verify_admin)):
-    with open("templates/admin.html", "r", encoding="utf-8") as f:
-        return f.read()
+# ── Excluir foto (só o admin do próprio casal) ──
+@app.delete("/api/{casal}/{codigo}/fotos/{arquivo}")
+def deletar_foto(casal: str, codigo: str, arquivo: str, x_admin_senha: str = Header(None)):
+    dados = get_casal(casal, codigo)
 
+    senha_admin = os.getenv(dados["senha_admin_env"])
 
-@app.delete("/admin/api/fotos/{key}")
-def deletar_foto(key: str, user: str = Depends(verify_admin)):
-    try:
-        s3.delete_object(Bucket=R2_BUCKET, Key=key)
-        return JSONResponse({"deleted": key})
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    if not x_admin_senha or x_admin_senha != senha_admin:
+        raise HTTPException(status_code=401, detail="Senha de admin inválida")
 
-
-app.mount("/static", StaticFiles(directory="static"), name="static")
+    key = f"{prefixo(casal, codigo)}{arquivo}"
+    s3.delete_object(Bucket=R2_BUCKET, Key=key)
+    return {"status": "ok"}

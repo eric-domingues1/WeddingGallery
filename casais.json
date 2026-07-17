@@ -1,0 +1,25 @@
+{
+  "eric-marilia": {
+    "codigo": "x7k2p9",
+    "nome1": "Eric",
+    "nome2": "Marília",
+    "data": "1 de Agosto de 2026",
+    "capa": "capa-eric-marilia.jpg",
+    "capa_hd": true,
+    "senha_admin_env": "ADMIN_SENHA_ERIC_MARILIA"
+  },
+  "lucas-taina": {
+    "codigo": "54x24",
+    "nome1": "Lucas",
+    "nome2": "Tainá",
+    "data": "17 de Outubro de 2026",
+    "capa": "capa-lucas-taina.jpg",
+    "capa_posicao": "center 25%",
+    "capa_posicao_mobile": "center 50%",
+    "capa_zoom_mobile": "200%",
+    "capa_hd": true,
+    "botoes_offset": 180,
+    "botoes_offset_mobile": 0,
+    "senha_admin_env": "ADMIN_SENHA_LUCAS_TAINA"
+  }
+}

@@ -3,142 +3,139 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="robots" content="noindex, nofollow">
-  <title>Admin · Galeria Eric & Marília</title>
+  <title>Admin · {{ nome1 }} & {{ nome2 }}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --cream: #faf7f4; --blush: #f0e4da; --gold: #c9a96e;
-      --gold-deep: #a07840; --text: #2e2319; --muted: #8a7060; --white: #ffffff;
-      --danger: #b3261e;
+      --cream: #faf7f4; --blush: #f0e4da; --gold: #c9a96e; --gold-deep: #a07840;
+      --text: #2e2319; --muted: #8a7060; --white: #fff; --danger: #b33;
     }
     body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
 
-    header { padding: 40px 24px 8px; text-align: center; }
-    .eyebrow { font-size: 11px; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold-deep); margin-bottom: 12px; }
-    header h1 { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.8rem, 5vw, 2.6rem); font-weight: 400; margin-bottom: 6px; }
-    header p { font-size: 0.85rem; color: var(--muted); font-weight: 300; }
+    header { padding: 40px 24px 0; text-align: center; }
+    header h1 { font-family: 'Playfair Display', Georgia, serif; font-weight: 400; font-size: 1.8rem; margin-bottom: 4px; }
+    header h1 em { font-style: italic; color: var(--gold-deep); }
+    header p { color: var(--muted); font-size: 0.85rem; }
 
-    #counter { text-align: center; font-size: 0.78rem; color: var(--muted); margin: 14px 0 0; letter-spacing: 0.05em; }
+    .login-box { max-width: 340px; margin: 60px auto; padding: 28px; background: var(--white); border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); text-align: center; }
+    .login-box input { width: 100%; padding: 12px 14px; border: 1.5px solid var(--blush); border-radius: 10px; font-size: 0.95rem; margin-top: 14px; font-family: 'Inter', sans-serif; }
+    .login-box button { width: 100%; margin-top: 14px; padding: 12px; background: var(--gold); color: #fff; border: none; border-radius: 50px; font-size: 0.95rem; font-weight: 500; cursor: pointer; }
+    .login-box button:hover { background: var(--gold-deep); }
+    .login-error { color: var(--danger); font-size: 0.8rem; margin-top: 10px; display: none; }
 
-    .grid-wrap { padding: 24px 20px 60px; max-width: 1200px; margin: 0 auto; }
-    .grid { columns: 3 260px; column-gap: 12px; }
-    .grid-item {
-      break-inside: avoid; margin-bottom: 12px; border-radius: 12px; overflow: hidden;
-      position: relative; background: var(--blush);
+    .grid-wrap { padding: 24px 20px 60px; max-width: 1100px; margin: 0 auto; display: none; }
+    #counter { text-align: center; color: var(--muted); font-size: 0.82rem; margin-bottom: 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+    .item { position: relative; border-radius: 10px; overflow: hidden; background: var(--blush); }
+    .item img, .item video { width: 100%; height: 160px; object-fit: cover; display: block; }
+    .item .del-btn {
+      position: absolute; top: 6px; right: 6px; background: rgba(179,51,51,0.9); color: #fff;
+      border: none; border-radius: 50%; width: 30px; height: 30px; font-size: 0.9rem; cursor: pointer;
     }
-    .grid-item img, .grid-item video { width: 100%; display: block; }
-
-    .del-btn {
-      position: absolute; top: 8px; right: 8px;
-      background: rgba(20,12,6,0.55); color: #fff; border: none;
-      width: 34px; height: 34px; border-radius: 50%;
-      font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: background 0.2s, transform 0.1s;
-      backdrop-filter: blur(4px);
-    }
-    .del-btn:hover { background: var(--danger); transform: scale(1.06); }
-    .del-btn:disabled { opacity: 0.5; cursor: default; }
-
-    .grid-item.removing { opacity: 0.35; pointer-events: none; }
-
-    .empty { text-align: center; padding: 80px 24px; color: var(--muted); }
-
-    .toast {
-      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-      background: var(--text); color: var(--cream); padding: 10px 20px; border-radius: 50px;
-      font-size: 0.85rem; opacity: 0; pointer-events: none; transition: opacity 0.25s;
-    }
-    .toast.show { opacity: 1; }
+    .item .del-btn:hover { background: #921f1f; }
+    .empty { text-align: center; padding: 60px 24px; color: var(--muted); }
   </style>
 </head>
 <body>
-
 <header>
-  <p class="eyebrow">Área restrita</p>
-  <h1>Gerenciar fotos</h1>
-  <p>Clique no ✕ pra remover uma foto ou vídeo da galeria.</p>
+  <h1>{{ nome1 }} <em>&</em> {{ nome2 }} — Admin</h1>
+  <p>Área restrita para excluir fotos/vídeos desta galeria</p>
 </header>
 
-<p id="counter"></p>
+<div class="login-box" id="loginBox">
+  <p>Digite a senha de admin</p>
+  <input type="password" id="senhaInput" placeholder="Senha">
+  <button id="btnEntrar">Entrar</button>
+  <p class="login-error" id="loginError">Senha incorreta.</p>
+</div>
 
-<div class="grid-wrap">
+<div class="grid-wrap" id="gridWrap">
+  <p id="counter"></p>
   <div class="grid" id="grid"></div>
 </div>
 
-<div class="toast" id="toast"></div>
-
 <script>
-  const grid = document.getElementById('grid');
-  const counter = document.getElementById('counter');
-  const toastEl = document.getElementById('toast');
+  const CASAL  = "{{ casal }}";
+  const CODIGO = "{{ codigo }}";
+  let SENHA = null;
+  let fotos = [];
 
-  function showToast(msg) {
-    toastEl.textContent = msg;
-    toastEl.classList.add('show');
-    setTimeout(() => toastEl.classList.remove('show'), 2200);
+  document.getElementById('btnEntrar').addEventListener('click', tentarEntrar);
+  document.getElementById('senhaInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') tentarEntrar();
+  });
+
+  async function tentarEntrar() {
+    const senha = document.getElementById('senhaInput').value;
+    if (!senha) return;
+
+    // valida a senha tentando listar as fotos (endpoint público) e só
+    // efetivamente confirma no primeiro delete; aqui fazemos uma checagem
+    // simples fazendo uma chamada de teste ao endpoint autenticado.
+    SENHA = senha;
+    const ok = await carregarFotos();
+    if (ok) {
+      document.getElementById('loginBox').style.display = 'none';
+      document.getElementById('gridWrap').style.display = 'block';
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+    }
   }
 
-  async function loadFotos() {
-    const resp = await fetch('/api/fotos');
-    const fotos = await resp.json();
-    renderGrid(fotos);
+  async function carregarFotos() {
+    const loginResp = await fetch(`/api/${CASAL}/${CODIGO}/admin/login`, {
+      method: 'POST',
+      headers: { 'X-Admin-Senha': SENHA }
+    });
+    if (!loginResp.ok) return false;
+
+    const resp = await fetch(`/api/${CASAL}/${CODIGO}/fotos`);
+    fotos = await resp.json();
+    renderGrid();
+    return true;
   }
 
-  function renderGrid(fotos) {
+  function renderGrid() {
+    const grid = document.getElementById('grid');
+    const counter = document.getElementById('counter');
     grid.innerHTML = '';
+
     if (!fotos.length) {
-      grid.innerHTML = `<div class="empty" style="column-span:all">Nenhuma foto na galeria ainda.</div>`;
+      grid.innerHTML = `<div class="empty" style="grid-column:1/-1">Nenhuma foto nesta galeria ainda.</div>`;
       counter.textContent = '';
       return;
     }
-    counter.textContent = `${fotos.length} item${fotos.length !== 1 ? 's' : ''}`;
 
-    fotos.forEach((item) => {
+    counter.textContent = `${fotos.length} arquivo(s)`;
+
+    fotos.forEach(item => {
       const div = document.createElement('div');
-      div.className = 'grid-item';
-
-      const media = item.tipo === 'imagem'
-        ? `<img src="${item.url}" loading="lazy" alt="Foto">`
-        : `<video src="${item.url}" muted playsinline preload="metadata"></video>`;
-
-      div.innerHTML = `
-        ${media}
-        <button class="del-btn" title="Excluir">✕</button>
-      `;
-
-      div.querySelector('.del-btn').addEventListener('click', () => excluir(item.key, div));
+      div.className = 'item';
+      const mediaHtml = item.tipo === 'imagem'
+        ? `<img src="${item.url}" loading="lazy">`
+        : `<video src="${item.url}" muted></video>`;
+      div.innerHTML = `${mediaHtml}<button class="del-btn" title="Excluir">✕</button>`;
+      div.querySelector('.del-btn').addEventListener('click', () => excluir(item.arquivo, div));
       grid.appendChild(div);
     });
   }
 
-  async function excluir(key, elemento) {
-    if (!confirm('Remover este item permanentemente da galeria?')) return;
-
-    elemento.classList.add('removing');
-    const btn = elemento.querySelector('.del-btn');
-    btn.disabled = true;
-
-    try {
-      const resp = await fetch(`/admin/api/fotos/${encodeURIComponent(key)}`, { method: 'DELETE' });
-      if (!resp.ok) throw new Error('Falha ao excluir');
-      elemento.remove();
-      showToast('Item removido.');
-      const restantes = grid.querySelectorAll('.grid-item').length;
-      counter.textContent = restantes ? `${restantes} item${restantes !== 1 ? 's' : ''}` : '';
-      if (!restantes) {
-        grid.innerHTML = `<div class="empty" style="column-span:all">Nenhuma foto na galeria ainda.</div>`;
-      }
-    } catch (e) {
-      elemento.classList.remove('removing');
-      btn.disabled = false;
-      showToast('Erro ao excluir. Tente novamente.');
+  async function excluir(arquivo, el) {
+    if (!confirm('Excluir esta foto/vídeo? Essa ação não pode ser desfeita.')) return;
+    const resp = await fetch(`/api/${CASAL}/${CODIGO}/fotos/${encodeURIComponent(arquivo)}`, {
+      method: 'DELETE',
+      headers: { 'X-Admin-Senha': SENHA }
+    });
+    if (resp.ok) {
+      fotos = fotos.filter(f => f.arquivo !== arquivo);
+      el.remove();
+      document.getElementById('counter').textContent = `${fotos.length} arquivo(s)`;
+    } else {
+      alert('Erro ao excluir. Tente novamente.');
     }
   }
-
-  loadFotos();
 </script>
 </body>
 </html>

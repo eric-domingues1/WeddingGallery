@@ -8,6 +8,7 @@ import uuid
 import boto3
 from botocore.client import Config
 from dotenv import load_dotenv
+from fastapi.responses import HTMLResponse
 
 load_dotenv()
 
@@ -68,9 +69,9 @@ def prefixo(casal: str, codigo: str) -> str:
 
 
 # ── Páginas ──
-@app.get("/")
-def raiz():
-    return {"status": "ok", "info": "Acesse /{casal}/{codigo} para ver a galeria de um casal."}
+@app.get("/", response_class=HTMLResponse)
+def raiz(request: Request):
+    return templates.TemplateResponse(request, "em_breve.html", {})
 
 
 @app.get("/{casal}/{codigo}")
